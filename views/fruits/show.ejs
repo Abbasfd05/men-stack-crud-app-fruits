@@ -4,31 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= fruit.name %></title>
-  </head>
+  <link rel="stylesheet" href="/stylesheets/style.css" />
+</head>
+
+
   <body>
-  <h1><%= fruit.name %></h1>
-  <!-- Conditional rendering based on fruit's readiness -->
-  <% if (fruit.isReadyToEat) { %>
-    <p>This fruit is ready to eat!</p>
-  <% } else { %>
-    <p>This fruit is not ready to eat!</p>
-  <% } %>
-<form action="/fruits/<%= fruit._id %>?_method=DELETE" method="post"> // It just wents back to itself
-  <button type="submit">Delete</button>
-</form>
-<!-- updated form -->
+    <a href="/fruits">Back to All Fruits</a>
+    <h1><%= fruit.name %></h1>
+    <% if(fruit.isReadyToEat){ %>
+      <p>Yummy Yummy get in my tummy!</p>
+    <% }else{ %>
+      <p>yuck!!! needs more time :) </p>
+    <% } %>
 
-<form action="/fruits/<%= fruit._id %>?_method=PUT" method="POST">
-  <label for="name">Name:</label>
-  <input type="text" name="name" id="name" value="<%= fruit.name %>" />
-
-  <label for="isReadyToEat">Ready to Eat?</label>
-  <input
-    type="checkbox"
-    name="isReadyToEat"
-    id="isReadyToEat"
-    <% if (fruit.isReadyToEat) { %> checked <% } %>
-  />
-
-  <button type="submit">Update Fruit</button>
-</form>
+    <form action="/fruits/<%=fruit._id%>?_method=DELETE" method="post">
+      <button type="submit">Delete</button>
+    </form>
+    <a href="/fruits/<%= fruit._id %>/edit">Edit <%= fruit.name %></a>
+  </body>
+</html>

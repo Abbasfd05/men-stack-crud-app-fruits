@@ -1,94 +1,111 @@
-const dotenv = require("dotenv"); // require package
-dotenv.config(); // Loads the environment variables from .env file
-// Here is where we import modules
-// We begin by loading Express
+/* eslint-disable no-console */
 
+require('dotenv').config();
 const express = require('express');
-const mongoose = require("mongoose"); // require package
+const mongoose = require('mongoose');
+const morgan = require('morgan');
+const path = require("path");
+const methodOverride = require('method-override');
+
+// Models
+const Fruit = require('./models/fruit');
+
 const app = express();
-const morgan=require('morgan');
-const methodOverride=require("method-override");
-// middleware: always app.use method, and just tell the method-override what query to use default: method
-app.use(express.urlencoded({extended:false})); // change the request
-app.use(morgan("dev")); //log the request
-app.use(methodOverride("_method"));
-// Connect to MongoDB using the connection string in the .env file
+
+// MIDDLEWARE
+app.use(express.urlencoded({ extended: false }));
+app.use(methodOverride('_method'));
+app.use(morgan('dev'));
+app.use(express.static(path.join(__dirname, "public")));
+// MONGO DB CONNECTION
 mongoose.connect(process.env.MONGODB_URI);
-// log connection status to terminal on start
-mongoose.connection.on("connected", () => {
+mongoose.connection.on('connected', () => {
   console.log(`Connected to MongoDB ${mongoose.connection.name}.`);
 });
-// Import the Fruit model
-const Fruit = require("./models/fruit.js");
 
-// server.js
+app.get('/', (req, res) => {
+  res.render('index.ejs');
+});
 
-// GET /
-app.get("/", async (req, res) => {
-  res.render("index.ejs");
+// Fruits
+app.get('/fruits/new', (req, res) => {
+  res.render('fruits/new.ejs');
 });
-app.get("/fruits/new" , (req,res) => {
-res.render("fruits/new.ejs");
-});
-app.post("/fruits", async (req, res) => {
+
+app.post('/fruits', async (req, res) => {
   try {
-     if (req.body.isReadyToEat === "on") {
-    req.body.isReadyToEat = true;
-  } else {
-    req.body.isReadyToEat = false;
-  }
+    if (req.body.isReadyToEat === 'on') {
+      req.body.isReadyToEat = true;
+    } else {
+      req.body.isReadyToEat = false;
+    }
 
     await Fruit.create(req.body);
-    res.redirect("/fruits/new"); //same as firing another get request in behalf of the user 
-  } catch (error) {
-    console.log("The error is", error);
+
+    res.redirect('/fruits');
+  } catch (err) {
+    console.log(err);
+    res.send('failed to create');
   }
 });
-app.get("/fruits", async (req, res) => {
+
+app.get('/fruits', async (req, res) => {
   try {
-   const allFruits=await Fruit.find();
-   res.render("index.ejs", { fruits: allFruits });
-
-  } catch (error) {
-    console.log("The error is", error);
+    const fruits = await Fruit.find();
+    res.render('fruits/index.ejs', { fruits });
+  } catch (err) {
+    console.log(err);
+    res.send('failed to get all fruits');
   }
 });
-app.get("/fruits/:id" , async (req,res) => {
-try {
-const fruit=await Fruit.findById(req.params.id);
-res.render("fruits/show.ejs", { fruit});
-} catch(error) {
-    console.log("The error is " , error);
-}
-});
-app.delete("/fruits/:id" , async (req,res) => { //delete doesn't conflict with get so we will use the same URL
-    try {
-  await Fruit.findByIdAndDelete(req.params.id);
-    res.redirect("/fruits");
 
-} catch(error) {
-    console.log("The error is " , error);
-}
-});
-
-app.put("/fruits/:fruitId", async (req, res) => {
-  // Handle the 'isReadyToEat' checkbox data
-  if (req.body.isReadyToEat === "on") {
-    req.body.isReadyToEat = true;
-  } else {
-    req.body.isReadyToEat = false;
-  }
-  
-  // Update the fruit in the database
+app.get('/fruits/:id', async (req, res) => {
   try {
-  await Fruit.findByIdAndUpdate(req.params.fruitId, req.body);
+    const fruit = await Fruit.findById(req.params.id);
 
-  // Redirect to the fruit's show page to see the updates
-  res.redirect(`/fruits/${req.params.fruitId}`);
-  } catch(err) {
-    console.log("The error is " + err);
+    res.render('fruits/show.ejs', { fruit });
+  } catch (err) {
+    console.log(err);
+    res.send('failed to fetch the fruit');
   }
 });
+
+app.delete('/fruits/:id', async (req, res) => {
+  try {
+    await Fruit.findByIdAndDelete(req.params.id);
+    res.redirect('/fruits');
+  } catch (err) {
+    console.log(err);
+    res.send('unable to delete fruit');
+  }
+});
+
+app.get('/fruits/:id/edit', async (req, res) => {
+  try {
+    const fruit = await Fruit.findById(req.params.id);
+    res.render('fruits/edit.ejs', { fruit });
+  } catch (err) {
+    console.log(err);
+    res.send('unable to update the fruit');
+  }
+});
+
+app.put('/fruits/:id', async (req, res) => {
+  try {
+    if (req.body.isReadyToEat === 'on') {
+      req.body.isReadyToEat = true;
+    } else {
+      req.body.isReadyToEat = false;
+    }
+
+    await Fruit.findByIdAndUpdate(req.params.id, req.body);
+    res.redirect(`/fruits/${req.params.id}`);
+  } catch (err) {
+    console.log(err);
+    res.send('unable to update the fruit');
+  }
+});
+
 app.listen(3000, () => {
-  console.log('Listening on port 3000');
+  console.log('server is running!!!!');
 });
