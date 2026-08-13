@@ -8,7 +8,7 @@ const path = require('path');
 const methodOverride = require('method-override');
 
 // Controllers
-const fruitsController = require('./controllers/fruits');
+const fruitsController = require('./controllers/fruitsCtrl');
 
 const app = express();
 

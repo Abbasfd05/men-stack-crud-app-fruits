@@ -3,7 +3,7 @@
 const Fruit = require('../models/fruit');
 
 const home = (req, res) => {
-  res.render('index.ejs');
+  res.render('index Homepage.ejs');
 };
 
 const showNewForm = (req, res) => {
